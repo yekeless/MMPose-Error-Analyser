@@ -5,10 +5,10 @@ import math
 # Set the paths to your result and ground truth folders
 result_folder = 'json_output'
 gt_folder = 'keypoint_files'
-output_file = 'sorted_results.json'  # Specify the output JSON file name
+output_file = 'sorted_results_with_bbox.json'  # Specify the output JSON file name
 
 result_list = []
-
+bbox_result_list = []
 # Iterate through result files
 for result_file in os.listdir(result_folder):
     if result_file.endswith('.json'):
@@ -64,7 +64,8 @@ for result_file in os.listdir(result_folder):
                     x2, y2 = keypoint2
                     distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
                     bbox_error += distance
-
+            bbox_result_dict = {"image_id": image_id, "error_score": bbox_error, "bbox_info":gt_bbox}
+            bbox_result_list.append(bbox_result_dict)
             error_sum += bbox_error
 
         result_dict = {"image_id": image_id, "error_score": error_sum}
@@ -72,10 +73,10 @@ for result_file in os.listdir(result_folder):
 
 # Sort the result_list by error_score in descending order
 sorted_list = sorted(result_list, key=lambda x: x["error_score"], reverse=True)
-
+sorted_bbox_list = sorted(bbox_result_list, key=lambda x: x["error_score"], reverse=True)
+result = {"image_result": sorted_list , "bbox_result": sorted_bbox_list }
 # Save the sorted_list to a JSON file
 with open(output_file, 'w') as output_json_file:
-    json.dump(sorted_list, output_json_file, indent=4)
+    json.dump(result, output_json_file, indent=4)
 
 print(f"Sorted results saved to {output_file}")
-
